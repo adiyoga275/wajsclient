@@ -18,6 +18,9 @@ class MessageController extends Controller
                     'image/jpeg' => 'jpg',
                     'image/png' => 'png',
                     'image/gif' => 'gif',
+                    'video/mp4' => 'mp4',
+                    'audio/ogg; codecs=opus' => 'ogg',
+                    'image/webp' => 'webp'
                     // Add more MIME types as needed
                 ];
                 
@@ -67,14 +70,17 @@ class MessageController extends Controller
     }
 
     function recentMessage() {
-        $contacts =  Message::select('phone', DB::raw('MAX(body) as body'), DB::raw('MAX(name) as name'), DB::raw('MAX(created_at) as created_at'))->groupBy('phone')->get();
+        $contacts =  Message::select('phone', DB::raw('MAX(body) as body'), DB::raw('MAX(name) as name'), DB::raw('MAX(created_at) as created_at'), DB::raw('MAX(id) as id'))
+        ->groupBy('phone')
+        ->orderBy('id', "DESC")
+        ->get();
         $result = [];
         foreach ($contacts as $c) {
             $result[] = array(
                 "phone" => $c->phone,
                 "name" => $c->name,
                 "avatar" => url('assets')."/images/users/avatar-2.jpg",
-                "lastMessage" => substr($c->body, 0,10),
+                "lastMessage" =>"a",
                 "lastMessageTime" =>  Carbon::parse($c->created_at)->diffForHumans()
             );
         }
@@ -91,7 +97,12 @@ class MessageController extends Controller
                 "date" => Carbon::parse($c->created_at)->format('Y-m-d'),
                 "isRight" => true,
                 "sender" => $c->name,
+                "phone" => $c->phone,
                 "text" => $c->body,
+                "media" => isset($c->attachment_type) ? array(
+                    "mimetype" => $c->attachment_type,
+                    "url" => $c->attachment_link
+                ) : NULL,
                 "time" => Carbon::parse($c->created_at)->format('H:i')
             );
         }

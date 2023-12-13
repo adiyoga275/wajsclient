@@ -17,6 +17,13 @@
         <link href="{{url('assets')}}/css/icons.min.css" rel="stylesheet" type="text/css" />
         <!-- App Css-->
         <link href="{{url('assets')}}/css/app.min.css" id="app-style" rel="stylesheet" type="text/css" />
+
+        <link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/simplebar@latest/dist/simplebar.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/simplebar@latest/dist/simplebar.min.js"></script>
+
         @yield('css')
     </head>
 
@@ -559,7 +566,7 @@
         <script src="{{url('assets')}}/libs/jquery/jquery.min.js"></script>
         <script src="{{url('assets')}}/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="{{url('assets')}}/libs/metismenu/metisMenu.min.js"></script>
-        <script src="{{url('assets')}}/libs/simplebar/simplebar.min.js"></script>
+        {{-- <script src="{{url('assets')}}/libs/simplebar/simplebar.min.js"></script> --}}
         <script src="{{url('assets')}}/libs/node-waves/waves.min.js"></script>
 
         <script src="{{url('assets')}}/js/app.js"></script>

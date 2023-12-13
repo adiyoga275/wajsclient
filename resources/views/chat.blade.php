@@ -1,8 +1,16 @@
 @extends('layouts/panel')
+@section('css')
+    <style>
+        p {
+            white-space: pre-line;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+    </style>
+@endsection
 @section('content')
     <div class="page-content">
         <div class="container-fluid">
-
             <!-- start page title -->
             <div class="row">
                 <div class="col-12">
@@ -89,7 +97,8 @@
                                             id="chat-list">
                                             <!-- Chat list will be populated dynamically -->
                                         </ul>
-                                    </div>
+
+                                        </div>
                                 </div>
                             </div>
                         </div>
@@ -101,64 +110,14 @@
                             <div class="row">
                                 <div class="col-md-4 col-9">
                                     <h5 class="font-size-15 mb-1">Steven Franklin</h5>
-                                    <p class="text-muted mb-0"><i class="mdi mdi-circle text-success align-middle me-1"></i> Active now</p>
+                                    <p class="text-muted mb-0"><i class="mdi mdi-circle text-success align-middle me-1"></i>
+                                        Active now</p>
                                 </div>
-                                {{-- <div class="col-md-8 col-3">
-                                    <ul class="list-inline user-chat-nav text-end mb-0">
-                                        <li class="list-inline-item d-none d-sm-inline-block">
-                                            <div class="dropdown">
-                                                <button class="btn nav-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                    <i class="bx bx-search-alt-2"></i>
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-end dropdown-menu-md">
-                                                    <form class="p-3">
-                                                        <div class="form-group m-0">
-                                                            <div class="input-group">
-                                                                <input type="text" class="form-control" placeholder="Search ..." aria-label="Recipient's username">
-                                                                
-                                                                <button class="btn btn-primary" type="submit"><i class="mdi mdi-magnify"></i></button>
-                                                                
-                                                            </div>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li class="list-inline-item  d-none d-sm-inline-block">
-                                            <div class="dropdown">
-                                                <button class="btn nav-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                    <i class="bx bx-cog"></i>
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-end">
-                                                    <a class="dropdown-item" href="#">View Profile</a>
-                                                    <a class="dropdown-item" href="#">Clear chat</a>
-                                                    <a class="dropdown-item" href="#">Muted</a>
-                                                    <a class="dropdown-item" href="#">Delete</a>
-                                                </div>
-                                            </div>
-                                        </li>
-
-                                        <li class="list-inline-item">
-                                            <div class="dropdown">
-                                                <button class="btn nav-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                    <i class="bx bx-dots-horizontal-rounded"></i>
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-end">
-                                                    <a class="dropdown-item" href="#">Action</a>
-                                                    <a class="dropdown-item" href="#">Another action</a>
-                                                    <a class="dropdown-item" href="#">Something else</a>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        
-                                    </ul>
-                                </div> --}}
                             </div>
                         </div>
                         <!-- Your existing HTML code for the chat window -->
                         <div class="chat-conversation p-3">
-                            <ul class="list-unstyled mb-0" data-simplebar style="max-height: 486px;"
-                                id="chat-messages">
+                            <ul class="list-unstyled mb-0 chat-messages" data-simplebar style="max-height: 486px;" id="chat-messages">
                                 <!-- Chat messages will be populated dynamically -->
                             </ul>
                         </div>
@@ -191,6 +150,7 @@
 @endsection
 @section('js')
     <script>
+    
         $(document).ready(function() {
             // Load initial chat list and messages
             loadChatList();
@@ -203,6 +163,7 @@
             });
         });
 
+
         function loadChatList() {
             // Use Ajax to load chat list from the server
             $.ajax({
@@ -210,12 +171,16 @@
                 type: 'GET',
                 dataType: 'json',
                 success: function(data) {
+                    
                     // Populate chat list dynamically
                     var chatList = $('#chat-list');
                     chatList.empty();
 
                     $.each(data, function(index, chat) {
-                        var listItem = '<li><a  class="chatContact" data-id="' + chat.phone + '">' +
+                        if(index == 0){
+                            loadChatMessages(chat.phone);
+                        }
+                        var listItem = '<li '+(index == 0 ? ' class="active"'  : '')+' ><a  class="chatContact" data-id="' + chat.phone + '">' +
                             '<div class="d-flex">' +
                             '<div class="flex-shrink-0 align-self-center me-3">' +
                             '<i class="mdi mdi-circle font-size-10"></i>' +
@@ -233,11 +198,15 @@
 
                         chatList.append(listItem);
                     });
+                    // new SimpleBar(chatList);
+                    new SimpleBar(document.getElementById('chat-list'));
+
                 },
                 error: function(error) {
                     console.error('Error loading chat list:', error);
                 }
             });
+
         }
 
 
@@ -277,7 +246,7 @@
 
                     $.each(data, function(index, message) {
                         var messageDate = message
-                        .date; // Assuming date is a string in the format "YYYY-MM-DD"
+                            .date; // Assuming date is a string in the format "YYYY-MM-DD"
                         var formattedDate = formatDate(messageDate); // Format the date as you prefer
 
                         var isToday = isCurrentDay(messageDate);
@@ -295,14 +264,17 @@
 
                             // Update the current day
                             currentDay = messageDate;
+                            
                         }
-
+                        console.log(message);
                         // Display the message
                         var messageItem = '<li class="' + (message.isRight ? 'right' : '') + '">' +
                             '<div class="conversation-list">' +
                             '<div class="ctext-wrap">' +
-                            '<div class="conversation-name">' + message.sender + '</div>' +
-                            '<p>' + message.text + '</p>' +
+                            '<div class="conversation-name">' + (message.sender == null ? message.phone : message.sender) + '</div>' +
+                            '<p>' + message.text + '</p> ' +
+                           attachmentView(message.media)+
+                                
                             '<p class="chat-time mb-0"><i class="bx bx-time-five align-middle me-1"></i> ' +
                             message.time + '</p>' +
                             '</div>' +
@@ -311,6 +283,8 @@
 
                         chatMessages.append(messageItem);
                     });
+                    var simpleBarInstance = new SimpleBar(document.getElementById('chat-messages'));
+                    simpleBarInstance.getScrollElement().scrollTop = simpleBarInstance.getScrollElement().scrollHeight;
 
                 },
                 error: function(error) {
@@ -319,6 +293,18 @@
             });
         }
 
+        function attachmentView(media){
+            if(media != null){
+                if(media.mimetype == "image/jpeg"){
+                    return '<img width="100px" src="{{url("storage")}}/'+ media.url+'">';
+                }
+                if(media.mimetype == "video/mp4"){
+                    return '<video width="320" height="240" controls><source src="{{url("storage")}}/'+ media.url+'" type="video/mp4"></video>';
+
+                }
+            }
+            return "";
+        }
         // Function to format the date (using JavaScript Date object)
         function formatDate(dateString) {
             var date = new Date(dateString);
@@ -358,5 +344,17 @@
                 }
             });
         }
+
+        function simplebarInit(element) {
+    if (typeof SimpleBar !== 'undefined') {
+        // Destroy existing Simplebar instance if it exists
+        if (element.SimpleBar) {
+            element.SimpleBar.unMount();
+        }
+
+        // Initialize Simplebar
+        new SimpleBar(element);
+    }
+}
     </script>
 @endsection

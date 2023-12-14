@@ -25,7 +25,7 @@ class MessageController extends Controller
                 'contactId' => $payload['chatId'],
             ], [
                 'isGroup' => $payload['isGroup'],
-                'name' => $payload['name'],
+                'name' => isset($payload['name']) ? $payload['name'] : $payload['chatId'] ,
                 'avatar' => isset($payload['avatar']) ? $payload['avatar'] : NULL,
             ]);
 

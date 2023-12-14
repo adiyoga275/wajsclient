@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('type', 50);
             $table->text('body')->nullable();
             $table->boolean('fromMe')->default(0);
-            $table->string('attachmentType', 50)->nullable();
+            $table->string('attachmentType', 225)->nullable();
             $table->string('attachmentLink')->nullable();
             $table->string('deviceType')->nullable();
             $table->double('timestamp');

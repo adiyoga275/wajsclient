@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+
 use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
@@ -13,85 +14,84 @@ use Illuminate\Support\Facades\DB;
 class MessageController extends Controller
 {
 
-    function store(Request $request) {
+    function store(Request $request)
+    {
         try {
             DB::beginTransaction();
-           $payload = $request->json()->all();
+            $payload = $request->json()->all();
             $client = Client::where('deviceId', $payload['deviceId'])->first();
-           Contact::updateOrCreate([
-            'clientId' =>  $client->id,
-            'contactId' => $payload['chatId'],
-           ],[
-            'isGroup' => $payload['isGroup'],
-            'name' => $payload['name'],
-            'avatar' => $payload['avatar'],
-           ]);
+            Contact::updateOrCreate([
+                'clientId' =>  $client->id,
+                'contactId' => $payload['chatId'],
+            ], [
+                'isGroup' => $payload['isGroup'],
+                'name' => $payload['name'],
+                'avatar' => isset($payload['avatar']) ? $payload['avatar'] : NULL,
+            ]);
 
-           foreach ($payload['onChat'] as $v) {
-            $messages = [];
-            if(!Message::where('timestamp', $v['timestamp'])->where('from', $v['from'])->where('to', $v['to'])->exists()){
+            foreach ($payload['onChat'] as $v) {
+                $messages = [];
+                if (!Message::where('timestamp', $v['timestamp'])->where('from', $v['from'])->where('to', $v['to'])->exists()) {
 
-                if($v['hasMedia']){
-                    $mimeToExtension = [
-                        'image/jpeg' => 'jpg',
-                        'image/png' => 'png',
-                        'image/gif' => 'gif',
-                        'video/mp4' => 'mp4',
-                        'audio/ogg; codecs=opus' => 'ogg',
-                        'image/webp' => 'webp'
-                        // Add more MIME types as needed
-                    ];
-                    
-                    // Get the file extension based on the MIME type
-                    $extension = isset($mimeToExtension[$v['mediaFile']['mimetype']]) ? $mimeToExtension[$v['mediaFile']['mimetype']] : null;
-    
-                    $decodedData = base64_decode($v['mediaFile']['data']);
-                    // Determine the storage directory
-                    $storagePath = storage_path('app/public/attachment/'); // Change this to your desired storage path
-                    // Generate a random filename
-                    $randomFilename = now()->timestamp.'_'.Str::random(5)."." . $extension; // Adjust the length and file extension as needed
-    
-                    // Save the decoded data to a file
-                    file_put_contents($storagePath . $randomFilename, $decodedData);
-                    $messages['attachmentType'] = $v['mediaFile']['mimetype'];
-                    $messages['attachmentLink'] = "attachment/".$randomFilename;
+                    if ($v['hasMedia']) {
+                        $mimeToExtension = [
+                            'image/jpeg' => 'jpg',
+                            'image/png' => 'png',
+                            'image/gif' => 'gif',
+                            'video/mp4' => 'mp4',
+                            'audio/ogg; codecs=opus' => 'ogg',
+                            'image/webp' => 'webp'
+                            // Add more MIME types as needed
+                        ];
+
+                        // Get the file extension based on the MIME type
+                        $extension = isset($mimeToExtension[$v['mediaFile']['mimetype']]) ? $mimeToExtension[$v['mediaFile']['mimetype']] : null;
+
+                        $decodedData = base64_decode($v['mediaFile']['data']);
+                        // Determine the storage directory
+                        $storagePath = storage_path('app/public/attachment/'); // Change this to your desired storage path
+                        // Generate a random filename
+                        $randomFilename = now()->timestamp . '_' . Str::random(5) . "." . $extension; // Adjust the length and file extension as needed
+
+                        // Save the decoded data to a file
+                        file_put_contents($storagePath . $randomFilename, $decodedData);
+                        $messages['attachmentType'] = $v['mediaFile']['mimetype'];
+                        $messages['attachmentLink'] = "attachment/" . $randomFilename;
+                    }
+
+                    $messages = array_merge($messages, array(
+                        'ack' => isset($v['ack']) ? $v['ack'] : NULL,
+                        'chatId' => $payload['chatId'],
+                        'from' => $v['from'],
+                        'to' => isset($v['to']) ? $v['to'] : NULL ,
+                        'type' => $v['type'],
+                        'body' => $v['body'],
+                        'fromMe' => $v['fromMe'],
+                        'deviceType' => $v['deviceType'],
+                        'timestamp' => $v['timestamp'],
+                        'isRead' => 0
+                    ));
+
+                    Message::create($messages);
+                    DB::commit();
                 }
-
-                $messages = array_merge($messages, array(
-                    'ack' => $v['ack'],
-                    'chatId' => $payload['chatId'],
-                    'from' => $v['from'],
-                    'to' => $v['to'],
-                    'type' => $v['type'],
-                    'body' => $v['body'],
-                    'fromMe' => $v['fromMe'],
-                    'deviceType' => $v['deviceType'],
-                    'timestamp' => $v['timestamp'],
-                    'isRead' => 0
-                ));
-                
-                Message::create($messages);
-                DB::commit();
-               
             }
-              
-           }
-           return response()->json([
-            'status' => true,
-            'message' => "Success"
-        ]);
+            return response()->json([
+                'status' => true,
+                'message' => "Success"
+            ]);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
-                'message' => "Failed ".$th->getMessage()
+                'message' => "Failed " . $th->getMessage()
             ]);
         }
-        
     }
-   
 
-    function recentMessage() {
+
+    function recentMessage()
+    {
         // $contacts =  Message::select('phone', DB::raw('MAX(body) as body'), DB::raw('MAX(name) as name'), DB::raw('MAX(created_at) as created_at'), DB::raw('MAX(id) as id'))
         // ->groupBy('phone')
         // ->orderBy('id', "DESC")
@@ -104,23 +104,25 @@ class MessageController extends Controller
                 "phone" => $c->contactId,
                 "name" => $c->name,
                 "avatar" => $c->avatar,
-                "lastMessage" =>$this->checkLastMessage($c->contactId),
+                "lastMessage" => $this->checkLastMessage($c->contactId),
                 "lastMessageTime" =>  Carbon::parse($c->created_at)->diffForHumans()
             );
         }
-        
-        return $result;
+
+        return response()->json(mb_convert_encoding($result, "UTF-8", "auto"));
     }
 
-    function checkLastMessage($phone) {
+    function checkLastMessage($phone)
+    {
         $message = Message::where('chatId', $phone)->where('type', 'chat')->orderBy('timestamp', 'desc')->whereNotNull('body')->first();
         return substr($message->body ?? "", 0, 20) ?? "";
     }
 
-    function messageByPhone($phone) {
+    function messageByPhone($phone)
+    {
 
         $messages = Message::where('chatId', $phone)->get();
-
+        $result = [];
         foreach ($messages as $c) {
             $result[] = array(
                 "date" => Carbon::parse($c->created_at)->format('Y-m-d'),
@@ -135,12 +137,13 @@ class MessageController extends Controller
                 "time" => Carbon::parse($c->created_at)->format('H:i')
             );
         }
-       
 
-        return $result ?? [];
+
+        return response()->json($result);
     }
 
-    function sendMessage(Request $request) {
+    function sendMessage(Request $request)
+    {
         $sendMessageResponse = [
             "status" => "success",
             "message" => [

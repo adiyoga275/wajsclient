@@ -31,39 +31,40 @@ class MessageController extends Controller
 
             foreach ($payload['onChat'] as $v) {
                 $messages = [];
-                if (!Message::where('timestamp', $v['timestamp'])->where('from', $v['from'])->where('to', $v['to'])->exists()) {
+                if (!Message::where('timestamp', $v['timestamp'])->where('from', $v['from'])->exists()) {
+                    if (isset($v['hasMedia'])) {
+                        if ($v['hasMedia']) {
+                            $mimeToExtension = [
+                                'image/jpeg' => 'jpg',
+                                'image/png' => 'png',
+                                'image/gif' => 'gif',
+                                'video/mp4' => 'mp4',
+                                'audio/ogg; codecs=opus' => 'ogg',
+                                'image/webp' => 'webp'
+                                // Add more MIME types as needed
+                            ];
 
-                    if ($v['hasMedia']) {
-                        $mimeToExtension = [
-                            'image/jpeg' => 'jpg',
-                            'image/png' => 'png',
-                            'image/gif' => 'gif',
-                            'video/mp4' => 'mp4',
-                            'audio/ogg; codecs=opus' => 'ogg',
-                            'image/webp' => 'webp'
-                            // Add more MIME types as needed
-                        ];
+                            // Get the file extension based on the MIME type
+                            $extension = isset($mimeToExtension[$v['mediaFile']['mimetype']]) ? $mimeToExtension[$v['mediaFile']['mimetype']] : null;
 
-                        // Get the file extension based on the MIME type
-                        $extension = isset($mimeToExtension[$v['mediaFile']['mimetype']]) ? $mimeToExtension[$v['mediaFile']['mimetype']] : null;
+                            $decodedData = base64_decode($v['mediaFile']['data']);
+                            // Determine the storage directory
+                            $storagePath = storage_path('app/public/attachment/'); // Change this to your desired storage path
+                            // Generate a random filename
+                            $randomFilename = now()->timestamp . '_' . Str::random(5) . "." . $extension; // Adjust the length and file extension as needed
 
-                        $decodedData = base64_decode($v['mediaFile']['data']);
-                        // Determine the storage directory
-                        $storagePath = storage_path('app/public/attachment/'); // Change this to your desired storage path
-                        // Generate a random filename
-                        $randomFilename = now()->timestamp . '_' . Str::random(5) . "." . $extension; // Adjust the length and file extension as needed
-
-                        // Save the decoded data to a file
-                        file_put_contents($storagePath . $randomFilename, $decodedData);
-                        $messages['attachmentType'] = $v['mediaFile']['mimetype'];
-                        $messages['attachmentLink'] = "attachment/" . $randomFilename;
+                            // Save the decoded data to a file
+                            file_put_contents($storagePath . $randomFilename, $decodedData);
+                            $messages['attachmentType'] = $v['mediaFile']['mimetype'];
+                            $messages['attachmentLink'] = "attachment/" . $randomFilename;
+                        }
                     }
 
                     $messages = array_merge($messages, array(
                         'ack' => isset($v['ack']) ? $v['ack'] : NULL,
                         'chatId' => $payload['chatId'],
                         'from' => $v['from'],
-                        'to' => isset($v['to']) ? $v['to'] : NULL ,
+                        'to' => isset($v['to']) ? $v['to'] : NULL,
                         'type' => $v['type'],
                         'body' => $v['body'],
                         'fromMe' => $v['fromMe'],

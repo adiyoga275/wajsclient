@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
+use App\Models\Client;
+use App\Models\Contact;
 use App\Models\Message;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -10,7 +12,83 @@ use Illuminate\Support\Facades\DB;
 
 class MessageController extends Controller
 {
+
     function store(Request $request) {
+        try {
+            DB::beginTransaction();
+           $payload = $request->json()->all();
+            $client = Client::where('deviceId', $payload['deviceId'])->first();
+           Contact::updateOrCreate([
+            'clientId' =>  $client->id,
+            'contactId' => $payload['chatId'],
+           ],[
+            'isGroup' => $payload['isGroup'],
+            'name' => $payload['name'],
+            'avatar' => $payload['avatar'],
+           ]);
+
+           foreach ($payload['onChat'] as $v) {
+            $messages = [];
+            if(!Message::where('timestamp', $v['timestamp'])->where('from', $v['from'])->where('to', $v['to'])->exists()){
+
+                if($v['hasMedia']){
+                    $mimeToExtension = [
+                        'image/jpeg' => 'jpg',
+                        'image/png' => 'png',
+                        'image/gif' => 'gif',
+                        'video/mp4' => 'mp4',
+                        'audio/ogg; codecs=opus' => 'ogg',
+                        'image/webp' => 'webp'
+                        // Add more MIME types as needed
+                    ];
+                    
+                    // Get the file extension based on the MIME type
+                    $extension = isset($mimeToExtension[$v['mediaFile']['mimetype']]) ? $mimeToExtension[$v['mediaFile']['mimetype']] : null;
+    
+                    $decodedData = base64_decode($request->file);
+                    // Determine the storage directory
+                    $storagePath = storage_path('app/public/attachment/'); // Change this to your desired storage path
+                    // Generate a random filename
+                    $randomFilename = now()->timestamp.'_'.Str::random(5)."." . $extension; // Adjust the length and file extension as needed
+    
+                    // Save the decoded data to a file
+                    file_put_contents($storagePath . $randomFilename, $decodedData);
+                    $messages['attachmentType'] = $v['mediaFile']['mimetype'];
+                    $messages['attachmentLink'] = "attachment/".$randomFilename;
+                }
+
+                $messages = array_merge($messages, array(
+                    'ack' => $v['ack'],
+                    'from' => $v['from'],
+                    'to' => $v['to'],
+                    'type' => $v['type'],
+                    'body' => $v['body'],
+                    'fromMe' => $v['fromMe'],
+                    'deviceType' => $v['deviceType'],
+                    'timestamp' => $v['timestamp'],
+                    'isRead' => 0
+                ));
+                
+                Message::create($messages);
+                DB::commit();
+               
+            }
+              
+           }
+           return response()->json([
+            'status' => true,
+            'message' => "Success"
+        ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => "Failed ".$th->getMessage()
+            ]);
+        }
+        
+    }
+    function storeOld(Request $request) {
         
         try {
             if(isset($request->file)){

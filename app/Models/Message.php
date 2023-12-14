@@ -9,12 +9,16 @@ class Message extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'phone',
-        'name',
+        'ack',
+        'from',
+        'to',
         'type',
         'body',
-        'attachment_type',
-        'attachment_link',
-        'is_read',
+        'fromMe',
+        'attachmentType',
+        'attachmentLink',
+        'deviceType',
+        'timestamp',
+        'isRead',
     ];
 }

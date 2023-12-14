@@ -13,13 +13,17 @@ return new class extends Migration
     {
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
-            $table->string('phone', 40);
-            $table->string('name', 100)->nullable();
+            $table->integer('ack')->default(0);
+            $table->string('from', 100);
+            $table->string('to', 100);
             $table->string('type', 50);
             $table->text('body')->nullable();
-            $table->string('attachment_type', 50)->nullable();
-            $table->string('attachment_link')->nullable();
-            $table->boolean('is_read')->default(0);
+            $table->boolean('fromMe')->default(0);
+            $table->string('attachmentType', 50)->nullable();
+            $table->string('attachmentLink')->nullable();
+            $table->string('deviceType')->nullable();
+            $table->double('timestamp');
+            $table->boolean('isRead')->default(0);
             $table->timestamps();
         });
     }

@@ -124,7 +124,7 @@ class MessageController extends Controller
         foreach ($messages as $c) {
             $result[] = array(
                 "date" => Carbon::parse($c->created_at)->format('Y-m-d'),
-                "isRight" => !$c->fromMe,
+                "isRight" => $c->fromMe,
                 "sender" => !$c->fromMe ? $c->contact->name : "Me",
                 "phone" => $c->phone,
                 "text" => $c->body ?? "",

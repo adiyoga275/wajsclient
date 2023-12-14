@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
             $table->integer('ack')->default(0);
+            $table->string('chatId', 100);
             $table->string('from', 100);
             $table->string('to', 100);
             $table->string('type', 50);

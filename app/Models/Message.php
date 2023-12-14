@@ -10,6 +10,7 @@ class Message extends Model
     use HasFactory;
     protected $fillable = [
         'ack',
+        'chatId',
         'from',
         'to',
         'type',
@@ -21,4 +22,8 @@ class Message extends Model
         'timestamp',
         'isRead',
     ];
+
+    function contact() {
+        return $this->hasOne(Contact::class, 'contactId', 'chatId');
+    }
 }

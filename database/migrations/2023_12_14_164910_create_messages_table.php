@@ -16,7 +16,7 @@ return new class extends Migration
             $table->integer('ack')->default(0);
             $table->string('chatId', 100);
             $table->string('from', 100);
-            $table->string('to', 100);
+            $table->string('to', 100)->nullable();
             $table->string('type', 50);
             $table->text('body')->nullable();
             $table->boolean('fromMe')->default(0);

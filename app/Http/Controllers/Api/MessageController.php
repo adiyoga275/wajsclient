@@ -45,7 +45,7 @@ class MessageController extends Controller
                     // Get the file extension based on the MIME type
                     $extension = isset($mimeToExtension[$v['mediaFile']['mimetype']]) ? $mimeToExtension[$v['mediaFile']['mimetype']] : null;
     
-                    $decodedData = base64_decode($request->file);
+                    $decodedData = base64_decode($v['mediaFile']['data']);
                     // Determine the storage directory
                     $storagePath = storage_path('app/public/attachment/'); // Change this to your desired storage path
                     // Generate a random filename

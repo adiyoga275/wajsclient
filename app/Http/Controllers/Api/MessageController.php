@@ -27,6 +27,8 @@ class MessageController extends Controller
                 'isGroup' => $payload['isGroup'],
                 'name' => isset($payload['name']) ? $payload['name'] : $payload['chatId'] ,
                 'avatar' => isset($payload['avatar']) ? $payload['avatar'] : NULL,
+                'lastMessage' => substr($payload['onChat'][0]['body'], 0, 40) ?? NULL,
+                'timestamp' => $payload['onChat'][0]['timestamp'] ?? NULL,
             ]);
 
             foreach ($payload['onChat'] as $v) {

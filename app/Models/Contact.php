@@ -15,5 +15,7 @@ class Contact extends Model
         'name',
         'isGroup',
         'avatar',
+        'lastMessage',
+        'timestamp'
     ];
 }

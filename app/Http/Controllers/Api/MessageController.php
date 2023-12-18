@@ -111,7 +111,7 @@ class MessageController extends Controller
                 "avatar" => $c->avatar,
                 "isGroup" => $c->isGroup,
                 "lastMessage" => $c->lastMessage,
-                "lastMessageTime" =>  Carbon::parse($c->timestamp)->setTimezone('Asia/Makassar')->diffForHumans()
+                "lastMessageTime" => isset($c->timestamp) ? Carbon::parse($c->timestamp)->setTimezone('Asia/Makassar')->diffForHumans() : ""
                 // "lastMessage" => $this->checkLastMessage($c->contactId),
                 // "lastMessageTime" =>  Carbon::parse($c->created_at)->diffForHumans()
             );

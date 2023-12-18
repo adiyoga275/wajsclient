@@ -35,7 +35,8 @@ class MessageController extends Controller
                 $messages = [];
                 if (!Message::where('timestamp', $v['timestamp'])->where('from', $v['from'])->exists()) {
                     if (isset($v['hasMedia'])) {
-                        if ($v['hasMedia']) {
+                        if ($v['hasMedia'] == true) {
+                            if(isset($v['mediaFile'])){
                             $mimeToExtension = [
                                 'image/jpeg' => 'jpg',
                                 'image/png' => 'png',
@@ -59,6 +60,7 @@ class MessageController extends Controller
                             file_put_contents($storagePath . $randomFilename, $decodedData);
                             $messages['attachmentType'] = $v['mediaFile']['mimetype'];
                             $messages['attachmentLink'] = "attachment/" . $randomFilename;
+                            }
                         }
                     }
 
@@ -100,7 +102,7 @@ class MessageController extends Controller
         // ->orderBy('id', "DESC")
         // ->get();
 
-        $contacts = Contact::orderBy('timestamp', 'DESC')->get();
+        $contacts = Contact::all();
         $result = [];
         foreach ($contacts as $c) {
             $result[] = array(

@@ -71,19 +71,19 @@
                         <div class="chat-leftsidebar-nav">
                             <ul class="nav nav-pills nav-justified">
                                 <li class="nav-item">
-                                    <a href="#chat" data-bs-toggle="tab" aria-expanded="true" class="nav-link active">
+                                    <a href="#chat" data-bs-toggle="tab" aria-expanded="true" class="nav-link active chatButton" id="chatButton">
                                         <i class="bx bx-chat font-size-20 d-sm-none"></i>
                                         <span class="d-none d-sm-block">Chat</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#groups" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
+                                    <a href="#groups" data-bs-toggle="tab" aria-expanded="false" class="nav-link groupButton" id="groupButton">
                                         <i class="bx bx-group font-size-20 d-sm-none"></i>
                                         <span class="d-none d-sm-block">Groups</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#contacts" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
+                                    <a href="#contacts" data-bs-toggle="tab" aria-expanded="false" class="nav-link contactButton" id="contactButton">
                                         <i class="bx bx-book-content font-size-20 d-sm-none"></i>
                                         <span class="d-none d-sm-block">Contacts</span>
                                     </a>
@@ -109,7 +109,7 @@
                         <div class="p-4 border-bottom ">
                             <div class="row">
                                 <div class="col-md-4 col-9">
-                                    <h5 class="font-size-15 mb-1">Steven Franklin</h5>
+                                    <h5 class="font-size-15 mb-1 name-contact" id="name-contact">Steven Franklin</h5>
                                     <p class="text-muted mb-0"><i class="mdi mdi-circle text-success align-middle me-1"></i>
                                         Active now</p>
                                 </div>
@@ -153,7 +153,7 @@
     
         $(document).ready(function() {
             // Load initial chat list and messages
-            loadChatList();
+            loadChatList('chat');
             // loadChatMessages(1);
             $(document).on("click", ".chatContact", function() {
                 var dataId = $(this).data("id");
@@ -161,10 +161,29 @@
                 loadChatMessages(dataId);
 
             });
+       
         });
 
+        $(document).on("click", ".chatButton", function() {
+                var dataId = $(this).data("id");
+                // Now 'dataId' contains the value of the 'data-id' attribute for the clicked element
+                loadChatList('chat');
 
-        function loadChatList() {
+            });
+            $(document).on("click", ".groupButton", function() {
+                var dataId = $(this).data("id");
+                // Now 'dataId' contains the value of the 'data-id' attribute for the clicked element
+                loadChatList('group');
+
+            });
+            $(document).on("click", ".contactButton", function() {
+                var dataId = $(this).data("id");
+                // Now 'dataId' contains the value of the 'data-id' attribute for the clicked element
+                loadChatList('contact');
+
+            });
+
+        function loadChatList(types) {
             // Use Ajax to load chat list from the server
             $.ajax({
                 url: "{{ url('api/recent-message') }}",
@@ -180,23 +199,32 @@
                         if(index == 0){
                             loadChatMessages(chat.phone);
                         }
-                        var listItem = '<li '+(index == 0 ? ' class="active"'  : '')+' ><a  class="chatContact" data-id="' + chat.phone + '">' +
-                            '<div class="d-flex">' +
-                            '<div class="flex-shrink-0 align-self-center me-3">' +
-                            '<i class="mdi mdi-circle font-size-10"></i>' +
-                            '</div>' +
-                            '<div class="flex-shrink-0 align-self-center me-3">' +
-                            '<img src="' + chat.avatar + '" class="rounded-circle avatar-xs" alt="">' +
-                            '</div>' +
-                            '<div class="flex-grow-1 overflow-hidden">' +
-                            '<h5 class="text-truncate font-size-14 mb-1">' + chat.name + '</h5>' +
-                            '<p class="text-truncate mb-0">' + chat.lastMessage + '</p>' +
-                            '</div>' +
-                            '<div class="font-size-11">' + chat.lastMessageTime + '</div>' +
-                            '</div>' +
-                            '</a></li>';
 
-                        chatList.append(listItem);
+                            var listItem = '<li '+(index == 0 ? ' class="active"'  : '')+' ><a  class="chatContact" data-id="' + chat.phone + '">' +
+                                '<div class="d-flex">' +
+                                '<div class="flex-shrink-0 align-self-center me-3">' +
+                                '<i class="mdi mdi-circle font-size-10"></i>' +
+                                '</div>' +
+                                '<div class="flex-shrink-0 align-self-center me-3">' +
+                                '<img src="' + chat.avatar + '" class="rounded-circle avatar-xs" alt="">' +
+                                '</div>' +
+                                '<div class="flex-grow-1 overflow-hidden">' +
+                                '<h5 class="text-truncate font-size-14 mb-1">' + chat.name + '</h5>' +
+                                '<p class="text-truncate mb-0">' + chat.lastMessage + '</p>' +
+                                '</div>' +
+                                '<div class="font-size-11">' + chat.lastMessageTime + '</div>' +
+                                '</div>' +
+                                '</a></li>';
+                        if(types == 'chat' && chat.isGroup == false){
+                            chatList.append(listItem);
+                        }
+                        if(types == 'group' && chat.isGroup == true){
+                            chatList.append(listItem);
+                        }
+
+                        if(types == 'contact'){
+                            chatList.append(listItem);
+                        }
                     });
                     // new SimpleBar(chatList);
                     new SimpleBar(document.getElementById('chat-list'));
@@ -219,6 +247,7 @@
                 type: 'GET',
                 dataType: 'json',
                 success: function(data) {
+
                     // Populate chat messages dynamically
                     var chatMessages = $('#chat-messages');
                     chatMessages.empty();
@@ -282,10 +311,14 @@
                             '</li>';
 
                         chatMessages.append(messageItem);
+
+                        if(!message.isRight){
+                            $("#name-contact").text(message.sender);
+
+                        }
                     });
                     var simpleBarInstance = new SimpleBar(document.getElementById('chat-messages'));
                     simpleBarInstance.getScrollElement().scrollTop = simpleBarInstance.getScrollElement().scrollHeight;
-
                 },
                 error: function(error) {
                     console.error('Error loading chat messages:', error);

@@ -102,15 +102,16 @@ class MessageController extends Controller
         // ->orderBy('id', "DESC")
         // ->get();
 
-        $contacts = Contact::all();
+        $contacts = Contact::orderBy('timestamp', "DESC")->get();
         $result = [];
         foreach ($contacts as $c) {
             $result[] = array(
                 "phone" => $c->contactId,
                 "name" => $c->name,
                 "avatar" => $c->avatar,
+                "isGroup" => $c->isGroup,
                 "lastMessage" => $c->lastMessage,
-                "lastMessageTime" =>  $c->timestamp
+                "lastMessageTime" =>  Carbon::parse($c->timestamp)->setTimezone('Asia/Makassar')->diffForHumans()
                 // "lastMessage" => $this->checkLastMessage($c->contactId),
                 // "lastMessageTime" =>  Carbon::parse($c->created_at)->diffForHumans()
             );
@@ -132,7 +133,7 @@ class MessageController extends Controller
         $result = [];
         foreach ($messages as $c) {
             $result[] = array(
-                "date" => Carbon::parse($c->created_at)->format('Y-m-d'),
+                "date" => Carbon::parse($c->timestamp)->setTimezone('Asia/Makassar')->format('Y-m-d'),
                 "isRight" => $c->from == $c->contact->contactId ? false : true,
                 "sender" => !$c->fromMe ? $c->contact->name : "Me",
                 "phone" => $c->phone,
@@ -141,7 +142,7 @@ class MessageController extends Controller
                     "mimetype" => $c->attachmentType,
                     "url" => $c->attachmentLink
                 ) : NULL,
-                "time" => Carbon::parse($c->created_at)->format('H:i')
+                "time" => Carbon::parse($c->timestamp)->setTimezone('Asia/Makassar')->format('H:i')
             );
         }
 

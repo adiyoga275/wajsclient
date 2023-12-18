@@ -100,15 +100,17 @@ class MessageController extends Controller
         // ->orderBy('id', "DESC")
         // ->get();
 
-        $contacts = Contact::all();
+        $contacts = Contact::orderBy('timestamp', 'DESC')->get();
         $result = [];
         foreach ($contacts as $c) {
             $result[] = array(
                 "phone" => $c->contactId,
                 "name" => $c->name,
                 "avatar" => $c->avatar,
-                "lastMessage" => $this->checkLastMessage($c->contactId),
-                "lastMessageTime" =>  Carbon::parse($c->created_at)->diffForHumans()
+                "lastMessage" => $c->lastMessage,
+                "lastMessageTime" =>  $c->timestamp
+                // "lastMessage" => $this->checkLastMessage($c->contactId),
+                // "lastMessageTime" =>  Carbon::parse($c->created_at)->diffForHumans()
             );
         }
 

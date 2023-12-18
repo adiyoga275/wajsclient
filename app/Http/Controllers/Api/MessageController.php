@@ -111,7 +111,7 @@ class MessageController extends Controller
                 "avatar" => $c->avatar,
                 "isGroup" => $c->isGroup,
                 "lastMessage" => $c->lastMessage,
-                "lastMessageTime" => isset($c->timestamp) ? Carbon::parse($c->timestamp)->setTimezone('Asia/Makassar')->diffForHumans() : ""
+                "lastMessageTime" => isset($c->timestamp) ? Carbon::createFromTimestamp($c->timestamp)->setTimezone('Asia/Makassar')->diffForHumans() : ""
                 // "lastMessage" => $this->checkLastMessage($c->contactId),
                 // "lastMessageTime" =>  Carbon::parse($c->created_at)->diffForHumans()
             );
@@ -133,7 +133,7 @@ class MessageController extends Controller
         $result = [];
         foreach ($messages as $c) {
             $result[] = array(
-                "date" => Carbon::parse($c->timestamp)->setTimezone('Asia/Makassar')->format('Y-m-d'),
+                "date" => Carbon::createFromTimestamp($c->timestamp)->setTimezone('Asia/Makassar')->format('Y-m-d'),
                 "isRight" => $c->from == $c->contact->contactId ? false : true,
                 "sender" => !$c->fromMe ? $c->contact->name : "Me",
                 "phone" => $c->phone,
@@ -142,7 +142,7 @@ class MessageController extends Controller
                     "mimetype" => $c->attachmentType,
                     "url" => $c->attachmentLink
                 ) : NULL,
-                "time" => Carbon::parse($c->timestamp)->setTimezone('Asia/Makassar')->format('H:i')
+                "time" => Carbon::createFromTimestamp($c->timestamp)->setTimezone('Asia/Makassar')->format('H:i')
             );
         }
 
